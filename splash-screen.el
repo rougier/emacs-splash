@@ -56,7 +56,7 @@
          (height         (window-body-height))
          (width          (window-body-width))
          (padding-center (- (/ height 2) 2))
-         (padding-bottom (- height (/ height 2) 3)))
+         (padding-bottom (- height (/ height 2) 2)))
     
     (with-current-buffer splash-buffer
       (erase-buffer)
@@ -94,7 +94,7 @@
       (insert (propertize "Copyright (C) 2020 Free Software Foundation, Inc."
                           'face 'font-lock-comment-face))
       (center-line)
-      
+      (goto-char 0)
       
       (local-set-key " "               'splash-screen-kill)
       (local-set-key "x"               'splash-screen-kill)
