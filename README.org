@@ -1,0 +1,13 @@
+*A less intrusive splash screen*
+
+[[./splash.png]]
+
+*Features*
+
+- No logo (not even in graphical mode)
+- Vertical and horizontal scroll bars are hidden
+- Modeline is hidden
+- " ", "x", "q", <esc> or <return> kills the startup buffer
+- <mouse-1< kills the startup buffer
+- "C-h" shows the regular splash screen
+- Splash screen is automatically killed after 5 seconds
