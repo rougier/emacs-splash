@@ -56,7 +56,7 @@
          (height         (window-body-height))
          (width          (window-body-width))
          (padding-center (- (/ height 2) 2))
-         (padding-bottom (- height (/ height 2) 2)))
+         (padding-bottom (- height (/ height 2) 3)))
     
     (with-current-buffer splash-buffer
       (erase-buffer)
