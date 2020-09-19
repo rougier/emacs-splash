@@ -1,13 +1,13 @@
-*A less intrusive splash screen*
+*A less intrusive splash screen for GNU Emacs*
 
 [[./splash.png]]
 
 *Features*
 
+- Text is short and centered
 - No logo (not even in graphical mode)
 - Vertical and horizontal scroll bars are hidden
 - Modeline is hidden
-- " ", "x", "q", <esc> or <return> kills the startup buffer
-- <mouse-1< kills the startup buffer
+- " ", "x", "q", <esc>,r <return> or <mouse-1> kills the buffer
 - "C-h" shows the regular splash screen
-- Splash screen is automatically killed after 5 seconds
+- Screen is automatically killed after 5 seconds
