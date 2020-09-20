@@ -1,13 +1,23 @@
-*A less intrusive splash screen for GNU Emacs*
+*An alternative splash screen for GNU Emacs*
 
 [[./splash.png]]
 
 *Features*
 
-- Text is short and centered
 - No logo (not even in graphical mode)
 - Vertical and horizontal scroll bars are hidden
 - Modeline is hidden
-- " ", "x", "q", <esc>,r <return> or <mouse-1> kills the buffer
-- "C-h" shows the regular splash screen
-- Screen is automatically killed after 5 seconds
+- =<space>=, =x=, =q=, =<esc>=, =<return>= or =<mouse-1>= kills the splash screen
+- =C-h= shows the regular startup screen (=about-emacs=)
+- Splash screen is automatically killed after 3 seconds
+- With emacs-mac (Mituharu), splash screen is faded out after 3 seconds
+
+*Usage*
+
+#+begin_src lisp
+(require 'splash-screen)
+#+end_src
+
+*Note* The splash screen is not shown if there are opened file buffers. For
+     example, if you start emacs with a filename on the command  line,
+     the splash is not shown.
