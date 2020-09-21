@@ -25,33 +25,31 @@
 ;;
 ;;  An alternative splash screen:
 ;;
-;;  +–––——————————––––––––––––––––––––––––––––———————————————————————+
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                         <www.gnu.org>                          |
-;;  |                     GNU Emacs version XX.Y                     |
-;;  |                      Type Ctrl-h for help                      |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |                                                                |
-;;  |           GNU Emacs comes with ABSOLUTELY NO WARRANTY          |
-;;  |        Copyright (C) 2020 Free Software Foundation, Inc.       |
-;;  +–––––––––––––––––––––––––––––––––––––––––———————————————————————+
+;;  +–—————————––––––––––––––––––––––––––––————————————————————+
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                       www.gnu.org                        |
+;;  |                  GNU Emacs version XX.Y                  |
+;;  |                   a free/libre editor                    |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |                                                          |
+;;  |        GNU Emacs comes with ABSOLUTELY NO WARRANTY       |
+;;  |     Copyright (C) 2020 Free Software Foundation, Inc.    |
+;;  |                                                          |
+;;  +––––––––––––––––––––––––––––––––––––––————————————————————+
 ;;
 ;; Features:
 ;;
-;;  - No logo, not even in graphical mode.
-;;  - Vertical and horizontal scroll bars and modeline are hidden
-;;  - "C-h" shows the regular startup screen
-;;  - " ", "x", "q", <esc>, <return> or <mouse-1> kills the splash screen
-;;  - Splash screen is automatically killed after 3 seconds
+;;  - No logo, no moddeline, no scrollbars
+;;  - "q" or <esc> kills the splash screen
+;;  - Any other key open the about-emacs buffer
 ;;  - With emacs-mac (Mituharu), splash screen is faded out after 3 seconds
 ;;
 ;; Note: The screen is not shown if there are opened file buffers. For
@@ -62,10 +60,9 @@
 ;; 
 ;;  (require 'splash-screen)
 ;;
- 
+;;; Code:
 (require 'cl-lib)
 
-;;; Code:
 (defun splash-screen ()
   "Emacs splash screen"
   
@@ -73,8 +70,8 @@
   (let* ((splash-buffer  (get-buffer-create "*splash*"))
          (height         (window-body-height nil))
          (width          (window-body-width nil))
-         (padding-center (- (/ height 2) 2))
-         (padding-bottom (- height (/ height 2) 3)))
+         (padding-center (- (/ height 2) 2 0))
+         (padding-bottom (- height (/ height 2) 3 1)))
 
     ;; If there are buffer associated with filenames,
     ;;  we don't show splash screen.
@@ -86,27 +83,31 @@
           (erase-buffer)
           
           ;; Buffer local settings
-          (setq mode-line-format nil)
+          (if (one-window-p)
+              (setq mode-line-format nil))
           (setq cursor-type nil)
           (setq vertical-scroll-bar nil)
           (setq horizontal-scroll-bar nil)
           (setq fill-column width)
-      
+          (face-remap-add-relative 'link :underline nil)
+
           ;; Vertical padding to center
           (insert-char ?\n padding-center)
 
           ;; Central text
           (insert-text-button "www.gnu.org"
-                    'action (lambda (_) (browse-url "https://www.gnu.org"))
-                    'follow-link t)
+                              'action (lambda (_)
+                                        (browse-url "https://www.gnu.org"))
+                              'help-echo "Visit www.gnu.org website"
+                              'follow-link t)
           (center-line) (insert "\n")
+
           (insert (concat (propertize "GNU Emacs"  'face 'bold)
                           " " "version "
                           (format "%d.%d"
                                   emacs-major-version emacs-minor-version)))
           (center-line) (insert "\n")
-          (insert (propertize "Type Ctrl-h for help"
-                              'face 'font-lock-comment-face))
+          (insert (propertize "A free/libre editor" 'face 'shadow))
           (center-line)
 
           ;; Vertical padding to bottom
@@ -114,49 +115,60 @@
 
           ;; Bottom text
           (insert (propertize "GNU Emacs comes with ABSOLUTELY NO WARRANTY"
-                              'face 'font-lock-comment-face))
+                              'face 'shadow))
           (center-line) (insert "\n")
           (insert (propertize "Copyright (C) 2020 Free Software Foundation, Inc."
-                          'face 'font-lock-comment-face))
+                              'face 'shadow))
+          (center-line) (insert "\n")
+
           (center-line)
           (goto-char 0)
-
-          (local-set-key " "               'splash-screen-kill)
-          (local-set-key "x"               'splash-screen-kill)
-          (local-set-key "q"               'splash-screen-kill)
-          (local-set-key (kbd "<mouse-1>") 'splash-screen-kill)
-          (local-set-key (kbd "<escape>")  'splash-screen-kill)
-          (local-set-key (kbd "<return>")  'splash-screen-kill)
-          (local-set-key (kbd "C-h")       'about-emacs)
           (read-only-mode t)
+          
+          (local-set-key [t]               'splash-screen-fade-to-about)
+          (local-set-key (kbd "C-[")       'splash-screen-fade-to-default)
+          (local-set-key (kbd "<escape>")  'splash-screen-fade-to-default)
+          (local-set-key (kbd "q")         'splash-screen-fade-to-default)
+          (local-set-key (kbd "<mouse-1>") 'mouse-set-point)
+          (local-set-key (kbd "<mouse-2>") 'operate-this-button)
+          ;; (local-set-key " "               'splash-screen-fade-to-default)
+          ;; (local-set-key "x"               'splash-screen-fade-to-default)
+          ;; (local-set-key (kbd "<RET>")     'splash-screen-fade-to-default)
+          ;; (local-set-key (kbd "<return>")  'splash-screen-fade-to-default)
           (display-buffer-same-window splash-buffer nil)
-          (run-with-idle-timer 3.0 nil 'splash-screen-fade)))))
+          (run-with-idle-timer 5.0 nil     'splash-screen-fade-to-about)))))
+
 
 ;; Mac animation, only available from
 ;;  https://bitbucket.org/mituharu/emacs-mac/src/master/
 ;;  https://github.com/railwaycat/homebrew-emacsmacport
-;; Could be replaced by dimmer.el for other distributions
-;;  https://github.com/gonewest818/dimmer.el
-(defvar mac-animation-duration 1.0)
 (defvar mac-animation-locked-p nil)
 (defun mac-animation-toggle-lock ()
   (setq mac-animation-locked-p (not mac-animation-locked-p)))
-(defun mac-animation-frame-fade-out (&rest args)
+(defun mac-animation-fade-out (duration &rest args)
   (unless mac-animation-locked-p
     (mac-animation-toggle-lock)
-    (mac-start-animation nil :type 'fade-out :duration 1.0)
-    (run-with-timer 1.0 nil 'mac-animation-toggle-lock)))
-(defun splash-screen-fade ()
-  "Kill the splash screen buffer (fade out)."
+    (mac-start-animation nil :type 'fade-out :duration duration)
+    (run-with-timer duration nil 'mac-animation-toggle-lock)))
+
+(defun splash-screen-fade-to (about duration)
+  "Fade out current frame for duration and goes to command-or-bufffer"
   (interactive)
+  (defalias 'mac-animation-fade-out-local
+    (apply-partially 'mac-animation-fade-out duration))
   (if (get-buffer "*splash*")
-      (progn (if (fboundp 'mac-start-animation)
+      (progn (if (and (display-graphic-p) (fboundp 'mac-start-animation))
                  (advice-add 'set-window-buffer
-                             :before 'mac-animation-frame-fade-out))
+                             :before 'mac-animation-fade-out-local))
+             (if about (about-emacs))
              (kill-buffer "*splash*")
-             (if (fboundp 'mac-start-animation)
+             (if (and (display-graphic-p) (fboundp 'mac-start-animation))
                  (advice-remove 'set-window-buffer
-                                'mac-animation-frame-fade-out)))))
+                                'mac-animation-fade-out-local)))))
+(defun splash-screen-fade-to-about ()
+  (interactive) (splash-screen-fade-to 1 1.0))
+(defun splash-screen-fade-to-default ()
+  (interactive) (splash-screen-fade-to nil 0.25))
 
 (defun splash-screen-kill ()
   "Kill the splash screen buffer (immediately)."
@@ -167,7 +179,8 @@
 ;; Suppress any startup message in the echo area
 (run-with-idle-timer 0.05 nil (lambda() (message nil)))
 
-;; Install hook after frame parameters have been applied
+;; Install hook after frame parameters have been applied and only if
+;; no option on the command line
 (if (and (not (member "-no-splash"  command-line-args))
          (not (member "--file"      command-line-args))
          (not (member "--insert"    command-line-args))
