@@ -63,15 +63,19 @@
 ;;; Code:
 (require 'cl-lib)
 
+
 (defun splash-screen ()
   "Emacs splash screen"
   
   (interactive)
   (let* ((splash-buffer  (get-buffer-create "*splash*"))
-         (height         (window-body-height nil))
+         (recover-session (and auto-save-list-file-prefix
+                               (file-directory-p (file-name-directory
+                                                  auto-save-list-file-prefix))))
+         (height         (- (window-body-height nil) 1))
          (width          (window-body-width nil))
-         (padding-center (- (/ height 2) 2 0))
-         (padding-bottom (- height (/ height 2) 3 1)))
+         (padding-center (- (/ height 2) 1))
+         (padding-bottom (- height (/ height 2) 3)))
 
     ;; If there are buffer associated with filenames,
     ;;  we don't show splash screen.
@@ -95,33 +99,41 @@
           (insert-char ?\n padding-center)
 
           ;; Central text
-          (insert-text-button "www.gnu.org"
-                              'action (lambda (_)
-                                        (browse-url "https://www.gnu.org"))
-                              'help-echo "Visit www.gnu.org website"
-                              'follow-link t)
+          (insert-text-button " www.gnu.org "
+                     'action (lambda (_) (browse-url "https://www.gnu.org"))
+                     'help-echo "Visit www.gnu.org website"
+                     'follow-link t)
           (center-line) (insert "\n")
-
-          (insert (concat (propertize "GNU Emacs"  'face 'bold)
-                          " " "version "
-                          (format "%d.%d"
-                                  emacs-major-version emacs-minor-version)))
+          (insert (concat
+                   (propertize "GNU Emacs"  'face 'bold)
+                   " " "version "
+                   (format "%d.%d" emacs-major-version emacs-minor-version)))
           (center-line) (insert "\n")
           (insert (propertize "A free/libre editor" 'face 'shadow))
           (center-line)
 
+
           ;; Vertical padding to bottom
           (insert-char ?\n padding-bottom)
 
-          ;; Bottom text
-          (insert (propertize "GNU Emacs comes with ABSOLUTELY NO WARRANTY"
-                              'face 'shadow))
+          ;; Recover session button
+          (when recover-session
+            (delete-char -2)
+            (insert-text-button " [Recover session] "
+                 'action (lambda (_) (call-interactively 'recover-session))
+                   'help-echo "Recover previous session"
+                   'face 'warning
+                   'follow-link t)
+            (center-line) (insert "\n") (insert "\n"))
+
+          ;; Copyright text
+          (insert (propertize
+                   "GNU Emacs comes with ABSOLUTELY NO WARRANTY" 'face 'shadow))
           (center-line) (insert "\n")
-          (insert (propertize "Copyright (C) 2020 Free Software Foundation, Inc."
-                              'face 'shadow))
+          (insert (propertize
+                   "Copyright (C) 2020 Free Software Foundation, Inc." 'face 'shadow))
           (center-line) (insert "\n")
 
-          (center-line)
           (goto-char 0)
           (read-only-mode t)
           
@@ -136,7 +148,7 @@
           ;; (local-set-key (kbd "<RET>")     'splash-screen-fade-to-default)
           ;; (local-set-key (kbd "<return>")  'splash-screen-fade-to-default)
           (display-buffer-same-window splash-buffer nil)
-          (run-with-idle-timer 5.0 nil     'splash-screen-fade-to-about)))))
+          (run-with-idle-timer 10.0 nil    'splash-screen-fade-to-about)))))
 
 
 ;; Mac animation, only available from
@@ -185,7 +197,8 @@
          (not (member "--file"      command-line-args))
          (not (member "--insert"    command-line-args))
          (not (member "--find-file" command-line-args))
-         (not inhibit-startup-screen))
+         (not inhibit-startup-screen)
+         )
     (progn
       (add-hook 'window-setup-hook 'splash-screen)
       (setq inhibit-startup-screen t 
